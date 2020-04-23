@@ -3,7 +3,7 @@ FROM registry.access.redhat.com/ubi8/python-36
 USER 0
 COPY ./app /app
 WORKDIR /app
-
+RUN pip install -r requirements.txt
 USER 1000
 # Launch flask instance on local host
 ENTRYPOINT [ "python" ]

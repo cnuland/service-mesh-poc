@@ -6,7 +6,15 @@ items:
   metadata:
     name: ubi8-python
   spec:
-    dockerImageRepository: registry.redhat.io/ubi8/python-36
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: registry.access.redhat.com/ubi8/python-36:latest
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
