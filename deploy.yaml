@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: broker
+objects:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: mesh-demo-${IDENTITY}
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: mesh
+        version: v1
+    template:
+      metadata:
+        annotations:
+          sidecar.istio.io/inject: "true"
+        labels:
+          app: mesh
+          version: v1
+      spec:
+        containers:
+        - env:
+          - name: SERVICES
+            value: ${SERVICES}
+          - name: IDENTITY
+            value: ${IDENTITY}
+          name: mesh-demo-${IDENTITY}
+          image: mesh-demo-base:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 5000
+parameters:
+- description: Services
+  displayname: Services
+  name: SERVICES
+  required: true
+- description: Identity
+  displayname: Identity
+  name: IDENTITY
+  required: true
