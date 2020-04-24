@@ -15,11 +15,9 @@ def route():
         return "Count cannot be greater than the amount of services"
     if count != 0: # End once the count reaches 0
         for x in range (identity, services+1): # Prevent circular calls
-            print("got here")
             if randint(0, 2) % 2 == 0: # Add some randomness to the demo
-                print("got here2")
-                print(requests.get("http://mesh-demo-{}:5000".format(x), params={'count': count-1}))
-    return "Service {} with {} calls help".format(identity, count)
+                requests.get("http://mesh-demo-{}:5000".format(x), params={'count': count-1})
+    return "SUCCESS"
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
