@@ -16,7 +16,7 @@ def route():
     if count != 0: # End once the count reaches 0
         for x in range (identity, services+1): # Prevent circular calls
             if randint(0, 2) % 2 == 0: # Add some randomness to the demo
-                print(requests.post("http://url:5000/".format(x), params={'count': count-1}))
+                print(requests.post("http://mesh-demo-{}:5000/".format(x), params={'count': count-1}))
     return "Service {} with {} calls help".format(identity, count)
 
 if __name__ == "__main__":
