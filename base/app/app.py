@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def route():
-    count = int(request.args.get("count")) # How far to iterate
+    count = request.args.get("count",  default = 0, type = int) # How far to iterate
     identity = int(os.getenv("IDENTITY")) # Identity of the running service
     services = int(os.getenv("SERVICES")) # The amount of services running
     if count > services:
