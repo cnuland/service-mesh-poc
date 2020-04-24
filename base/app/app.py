@@ -1,6 +1,6 @@
 from flask import Flask
-from random import randint
 from flask import request
+from random import randint
 import requests
 import os
 
@@ -8,9 +8,9 @@ app = Flask(__name__)
 
 @app.route("/")
 def route():
-    count = request.args.get("count") # How far to iterate
-    identity = os.getenv("IDENTITY") # Identity of the running service
-    services = os.getenv("SERVICES") # The amount of services running
+    count = int(request.args.get("count")) # How far to iterate
+    identity = int(os.getenv("IDENTITY")) # Identity of the running service
+    services = int(os.getenv("SERVICES")) # The amount of services running
     if count > services:
         return "Count cannot be greater than the amount of services"
     if count != 0: # End once the count reaches 0
