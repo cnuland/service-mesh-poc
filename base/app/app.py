@@ -96,19 +96,16 @@ def route():
     caller = request.args.get("caller",  default = 0, type = int) # How far to iterate
     identity = int(os.getenv("IDENTITY")) # Identity of the running service
     services = int(os.getenv("SERVICES")) # The amount of services running
-    print(services)
     headers = getForwardHeaders(request)
     if count > services:
         return "Count cannot be greater than the amount of services"
     if count != 0: # End once the count reaches 0
         for x in range(identity+1, services+1): # Prevent circular calls
-            print(x)
             if caller == x: # No callbacks to the original caller
                 continue
-            #if randint(0, 3) % 3 == 0: # Add some randomness to the demo
-            url = "http://mesh-demo-{}:5000".format(x)
-            print("Request to {} from service {}".format(url, identity))
-            requests.get(url, params={'count': count-1, 'caller': identity}, headers=headers)
+            if randint(0, 2) % 2 == 0: # Add some randomness to the demo
+                url = "http://mesh-demo-{}:5000".format(x)
+                requests.get(url, params={'count': count-1, 'caller': identity}, headers=headers)
     return "SUCCESS"
 
 if __name__ == "__main__":
