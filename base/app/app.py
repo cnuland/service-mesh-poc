@@ -105,7 +105,7 @@ def route():
                 continue
             if randint(0, 3) % 3 == 0: # Add some randomness to the demo
                 url = "http://mesh-demo-{}:5000".format(x)
-                print("Request to {} from service {}").format(url, identity)
+                print("Request to {} from service {}".format(url, identity))
                 requests.get(url, params={'count': count-1, 'caller': identity}, headers=headers)
     return "SUCCESS"
 
