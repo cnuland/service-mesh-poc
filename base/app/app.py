@@ -1,5 +1,5 @@
-from flask import Flask
-from flask import request
+from flask import Flask, request, session, render_template, redirect, url_for
+from flask import _request_ctx_stack as stack
 from random import randint
 from jaeger_client import Tracer, ConstSampler
 from jaeger_client.reporter import NullReporter
