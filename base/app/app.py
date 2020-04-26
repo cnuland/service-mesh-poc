@@ -99,7 +99,7 @@ def route():
     if count > services:
         return "Count cannot be greater than the amount of services"
     if count != 0: # End once the count reaches 0
-        for x in range (identity, services+1): # Prevent circular calls
+        for x in range(identity+1, services+1): # Prevent circular calls
             if randint(0, 3) % 3 == 0: # Add some randomness to the demo
                 requests.get("http://mesh-demo-{}:5000".format(x), params={'count': count-1}, headers=headers)
     return "SUCCESS"
