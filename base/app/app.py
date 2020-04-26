@@ -1,22 +1,107 @@
 from flask import Flask
 from flask import request
 from random import randint
+from jaeger_client import Tracer, ConstSampler
+from jaeger_client.reporter import NullReporter
+from jaeger_client.codecs import B3Codec
+from opentracing.ext import tags
+from opentracing.propagation import Format
+from opentracing_instrumentation.request_context import get_current_span, span_in_context
 import requests
 import os
 
 app = Flask(__name__)
 
+# A very basic OpenTracing tracer (with null reporter)
+tracer = Tracer(
+    one_span_per_rpc=True,
+    service_name='productpage',
+    reporter=NullReporter(),
+    sampler=ConstSampler(decision=True),
+    extra_codecs={Format.HTTP_HEADERS: B3Codec()}
+)
+
+
+def trace():
+    '''
+    Function decorator that creates opentracing span from incoming b3 headers
+    '''
+    def decorator(f):
+        def wrapper(*args, **kwargs):
+            request = stack.top.request
+            try:
+                # Create a new span context, reading in values (traceid,
+                # spanid, etc) from the incoming x-b3-*** headers.
+                span_ctx = tracer.extract(
+                    Format.HTTP_HEADERS,
+                    dict(request.headers)
+                )
+                # Note: this tag means that the span will *not* be
+                # a child span. It will use the incoming traceid and
+                # spanid. We do this to propagate the headers verbatim.
+                rpc_tag = {tags.SPAN_KIND: tags.SPAN_KIND_RPC_SERVER}
+                span = tracer.start_span(
+                    operation_name='op', child_of=span_ctx, tags=rpc_tag
+                )
+            except Exception as e:
+                # We failed to create a context, possibly due to no
+                # incoming x-b3-*** headers. Start a fresh span.
+                # Note: This is a fallback only, and will create fresh headers,
+                # not propagate headers.
+                span = tracer.start_span('op')
+            with span_in_context(span):
+                r = f(*args, **kwargs)
+                return r
+        wrapper.__name__ = f.__name__
+        return wrapper
+    return decorator
+
+
+def getForwardHeaders(request):
+    headers = {}
+
+    # x-b3-*** headers can be populated using the opentracing span
+    span = get_current_span()
+    carrier = {}
+    tracer.inject(
+        span_context=span.context,
+        format=Format.HTTP_HEADERS,
+        carrier=carrier)
+
+    headers.update(carrier)
+
+    # We handle other (non x-b3-***) headers manually
+    if 'user' in session:
+        headers['end-user'] = session['user']
+
+    incoming_headers = ['x-request-id', 'x-datadog-trace-id', 'x-datadog-parent-id', 'x-datadog-sampled']
+
+    # Add user-agent to headers manually
+    if 'user-agent' in request.headers:
+        headers['user-agent'] = request.headers.get('user-agent')
+
+    for ihdr in incoming_headers:
+        val = request.headers.get(ihdr)
+        if val is not None:
+            headers[ihdr] = val
+            # print "incoming: "+ihdr+":"+val
+
+    return headers
+
+
 @app.route("/")
+@trace()
 def route():
     count = request.args.get("count",  default = 0, type = int) # How far to iterate
     identity = int(os.getenv("IDENTITY")) # Identity of the running service
     services = int(os.getenv("SERVICES")) # The amount of services running
+    headers = getForwardHeaders(request)
     if count > services:
         return "Count cannot be greater than the amount of services"
     if count != 0: # End once the count reaches 0
         for x in range (identity, services+1): # Prevent circular calls
-            if randint(0, 2) % 2 == 0: # Add some randomness to the demo
-                requests.get("http://mesh-demo-{}:5000".format(x), params={'count': count-1})
+            if randint(0, 3) % 3 == 0: # Add some randomness to the demo
+                requests.get("http://mesh-demo-{}:5000".format(x), params={'count': count-1}, headers=headers)
     return "SUCCESS"
 
 if __name__ == "__main__":
