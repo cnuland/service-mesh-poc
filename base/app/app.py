@@ -100,11 +100,13 @@ def route():
     if count > services:
         return "Count cannot be greater than the amount of services"
     if count != 0: # End once the count reaches 0
-        for x in range(identity+2, services+1): # Prevent circular calls
+        for x in range(identity, services+1): # Prevent circular calls
             if caller == x: # No callbacks to the original caller
                 continue
             if randint(0, 3) % 3 == 0: # Add some randomness to the demo
-                requests.get("http://mesh-demo-{}:5000".format(x), params={'count': count-1, 'caller': identity}, headers=headers)
+                url = "http://mesh-demo-{}:5000".format(x)
+                print("Request to {} from service {}").format(url, identity)
+                requests.get(url, params={'count': count-1, 'caller': identity}, headers=headers)
     return "SUCCESS"
 
 if __name__ == "__main__":
