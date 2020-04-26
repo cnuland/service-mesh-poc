@@ -102,6 +102,7 @@ def route():
         return "Count cannot be greater than the amount of services"
     if count != 0: # End once the count reaches 0
         for x in range(identity, services+1): # Prevent circular calls
+            print(x)
             if caller == x: # No callbacks to the original caller
                 continue
             #if randint(0, 3) % 3 == 0: # Add some randomness to the demo
